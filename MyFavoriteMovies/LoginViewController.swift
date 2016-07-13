@@ -143,8 +143,9 @@ class LoginViewController: UIViewController {
                 return
             }
             
-            // 6. Use the data
-            print(token)
+            // 6. Use the data (Store request token in AppDelegate)
+            self.appDelegate.requestToken = token
+            self.loginWithToken(token)
         }
 
         // 7. Start the request
@@ -156,11 +157,47 @@ class LoginViewController: UIViewController {
         // TODO: Login, then get a session id
         
         // 1. Set the parameters
+        let methodParameters = [Constants.TMDBParameterKeys.ApiKey : Constants.TMDBParameterValues.ApiKey,
+                                Constants.TMDBParameterKeys.RequestToken : requestToken,
+                                Constants.TMDBParameterKeys.Username : Constants.TMDBParameterValues.Username,
+                                Constants.TMDBParameterKeys.Password : Constants.TMDBParameterValues.Password]
         // 2/3. Build the URL, Configure the request
+        let request = NSURLRequest(URL: appDelegate.tmdbURLFromParameters(methodParameters, withPathExtension: "/authentication/token/validate_with_login"))
+        
         // 4. Make the request
-        // 5. Parse the data
-        // 6. Use the data!
+        let task = appDelegate.sharedSession.dataTaskWithRequest(request) { (data, response, error) in
+            
+            // Check for error
+            guard (error == nil) else {
+                print("There was an error with your request: \(error)")
+                return
+            }
+            
+            // Check for successful 2XX response
+            guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
+                print("Your request returned a status code other than 2xx.")
+                return
+            }
+            
+            // Check if data was returned; not necessary due to guard error check above
+            guard let data = data else {
+                print("No data was returned by the request.")
+                return
+            }
+        
+            // 5. Parse the data
+            let parsedResult: AnyObject!
+            do {
+                parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
+            } catch {
+                print("Could not parse the data as JSON: '\(data)'")
+                return
+            }
+            // 6. Use the data!
+            print(parsedResult)
+        }
         // 7. Start the request
+        task.resume()
     }
     
     private func getSessionID(requestToken: String) {

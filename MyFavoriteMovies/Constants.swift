@@ -27,6 +27,8 @@ struct Constants {
     // TMDB Parameter Values
     struct TMDBParameterValues {
         static let ApiKey = "9e805dbbb2877cb4562ccb43a0a902bc"
+        static let Username = "iMoment"
+        static let Password = "themoviedb1337"
     }
     
     // TMDB Response Keys
