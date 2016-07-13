@@ -212,7 +212,7 @@ class LoginViewController: UIViewController {
             }
             
             // 6. Use the data
-            print("Login was successful!")
+            self.getSessionID(requestToken)
         }
         
         // 7. Start the request
@@ -224,11 +224,70 @@ class LoginViewController: UIViewController {
         // TODO: Get a session ID, then store it (appDelegate.sessionID) and get the user's id
         
         // 1. Set the parameters
+        let methodParameters = [Constants.TMDBParameterKeys.ApiKey : Constants.TMDBParameterValues.ApiKey,
+                                Constants.TMDBParameterKeys.RequestToken : requestToken]
+        
         // 2/3. Build the URL, Configure the request
+        let request = NSURLRequest(URL: appDelegate.tmdbURLFromParameters(methodParameters, withPathExtension: "/authentication/session/new"))
+        
         // 4. Make the request
-        // 5. Parse the data
-        // 6. Use the data!
+        let task = appDelegate.sharedSession.dataTaskWithRequest(request) { (data, response, error) in
+            
+            // If error, print it and re-enable UI
+            func displayError(error: String, debugLabelText: String? = nil) {
+                print(error)
+                performUIUpdatesOnMain {
+                    self.setUIEnabled(true)
+                    self.debugTextLabel.text = "Could not get Session ID."
+                }
+            }
+            
+            // Check for error
+            guard (error == nil) else {
+                displayError("There was an error with your request: \(error)")
+                return
+            }
+            
+            // Check for successful 2XX response
+            guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
+                displayError("Your request returned a status code other than 2xx.")
+                return
+            }
+            
+            // Check if data was returned; not necessary due to guard error check above
+            guard let data = data else {
+                displayError("No data was returned by the request.")
+                return
+            }
+            
+            // 5. Parse the data
+            let parsedResult: AnyObject!
+            do {
+                parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
+            } catch {
+                displayError("Could not parse the data as JSON: '\(data)'")
+                return
+            }
+            
+            // Check to see if TMDB returned an error (success != true)
+            guard let success = parsedResult[Constants.TMDBResponseKeys.Success] as? Bool where success == true else {
+                displayError("TMDB returned an error and was not successful.")
+                return
+            }
+            
+            // Check for "session_id" key in parsedResult
+            guard let sessionID = parsedResult[Constants.TMDBResponseKeys.SessionID] as? String else {
+                displayError("Cannot find key '\(Constants.TMDBResponseKeys.SessionID)' in \(parsedResult)")
+                return
+            }
+            
+            // 6. Use the data!
+            self.appDelegate.sessionID = sessionID
+            print(sessionID)
+        }
+        
         // 7. Start the request
+        task.resume()
     }
     
     private func getUserID(sessionID: String) {
