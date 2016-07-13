@@ -95,21 +95,30 @@ class LoginViewController: UIViewController {
         // 4. Make the request
         let task = appDelegate.sharedSession.dataTaskWithRequest(request) { (data, response, error) in
             
+            // If error, print it and re-enable UI
+            func displayError(error: String) {
+                print(error)
+                performUIUpdatesOnMain {
+                    self.setUIEnabled(true)
+                    self.debugTextLabel.text = "Login Failed."
+                }
+            }
+            
             // Check for error
             guard (error == nil) else {
-                self.debugTextLabel.text = "\(error)"
+                displayError("There was an error with your request: \(error)")
                 return
             }
             
             // Check for successful 2XX response
             guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
-                self.debugTextLabel.text = "Your request returned a status code other than 2xx."
+                displayError("Your request returned a status code other than 2xx.")
                 return
             }
             
             // Check if data was returned; not necessary due to guard error check above
             guard let data = data else {
-                self.debugTextLabel.text = "No data was returned by the request."
+                displayError("No data was returned by the request.")
                 return
             }
             
@@ -118,19 +127,19 @@ class LoginViewController: UIViewController {
             do {
                 parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
             } catch {
-                self.debugTextLabel.text = "Could not parse the data as JSON: '\(data)'"
+                displayError("Could not parse the data as JSON: '\(data)'")
                 return
             }
             
             // Check to see if TMDB returned an error (success != true)
             guard let success = parsedResult[Constants.TMDBResponseKeys.Success] as? Bool where success == true else {
-                self.debugTextLabel.text = "TMDB returned an error and was not successful."
+                displayError("TMDB returned an error and was not successful.")
                 return
             }
 
             // Check for "request_token" key in parsedResult
             guard let token = parsedResult[Constants.TMDBResponseKeys.RequestToken] as? String else {
-                self.debugTextLabel.text = "Could not generate a new token."
+                displayError("Cannot find key '\(Constants.TMDBResponseKeys.RequestToken)' in \(parsedResult)")
                 return
             }
             
