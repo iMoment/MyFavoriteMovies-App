@@ -86,7 +86,7 @@ class LoginViewController: UIViewController {
         
         // 1. Set the parameters
         let methodParameters = [
-            Constants.TMDBParameterKeys.ApiKey: Constants.TMDBParameterValues.ApiKey
+            Constants.TMDBParameterKeys.ApiKey : Constants.TMDBParameterValues.ApiKey
         ]
         
         // 2/3. Build the URL, Configure the request
@@ -95,8 +95,47 @@ class LoginViewController: UIViewController {
         // 4. Make the request
         let task = appDelegate.sharedSession.dataTaskWithRequest(request) { (data, response, error) in
             
+            // Check for error
+            guard (error == nil) else {
+                self.debugTextLabel.text = "\(error)"
+                return
+            }
+            
+            // Check for successful 2XX response
+            guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
+                self.debugTextLabel.text = "Your request returned a status code other than 2xx."
+                return
+            }
+            
+            // Check if data was returned; not necessary due to guard error check above
+            guard let data = data else {
+                self.debugTextLabel.text = "No data was returned by the request."
+                return
+            }
+            
             // 5. Parse the data
-            // 6. Use the data!
+            let parsedResult: AnyObject!
+            do {
+                parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
+            } catch {
+                self.debugTextLabel.text = "Could not parse the data as JSON: '\(data)'"
+                return
+            }
+            
+            // Check to see if TMDB returned an error (success != true)
+            guard let success = parsedResult[Constants.TMDBResponseKeys.Success] as? Bool where success == true else {
+                self.debugTextLabel.text = "TMDB returned an error and was not successful."
+                return
+            }
+
+            // Check for "request_token" key in parsedResult
+            guard let token = parsedResult[Constants.TMDBResponseKeys.RequestToken] as? String else {
+                self.debugTextLabel.text = "Could not generate a new token."
+                return
+            }
+            
+            // 6. Use the data
+            print(token)
         }
 
         // 7. Start the request
