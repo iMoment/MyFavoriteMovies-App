@@ -83,7 +83,7 @@ class FavoritesTableViewController: UITableViewController {
                 return
             }
             
-            // Use the data!
+            // Use the data
             self.movies = Movie.moviesFromResults(results)
             performUIUpdatesOnMain {
                 self.tableView.reloadData()
