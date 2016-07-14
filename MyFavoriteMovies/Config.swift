@@ -74,47 +74,39 @@ class Config: NSObject, NSCoding {
     
     private func updateConfiguration() {
         
-        // TODO: Get TheMovieDB configuration, and update the config
+        // Get TheMovieDB configuration, and update the config
         
         // Grab the app delegate
         let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
         
-        // 1. Set the parameters
+        // Set parameters
         let methodParameters = [
             Constants.TMDBParameterKeys.ApiKey: Constants.TMDBParameterValues.ApiKey
         ]
         
-        // 2/3. Build the URL, Configure the request
+        // Build URL / Configure request
         let request = NSMutableURLRequest(URL: appDelegate.tmdbURLFromParameters(methodParameters, withPathExtension: "/configuration"))
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         
-        // 4. Make the request
+        // Make request
         let task = appDelegate.sharedSession.dataTaskWithRequest(request) { (data, response, error) in
             
-            // Check for error
             guard (error == nil) else {
                 print("There was an error with your request: \(error)")
                 return
             }
             
-            // Check for successful 2XX response
             guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
                 print("Your request returned a status code other than 2xx.")
                 return
             }
             
-            // Check if data was returned; not necessary due to guard error check above
             guard let data = data else {
                 print("No data was returned by the request!")
                 return
             }
-
-//            guard (error == nil) else {
-//                print("There was an error with your request: \(error)")
-//                return
-//            }
             
-            // Parse the data
+            // Parsing the data
             let parsedResult: AnyObject!
             do {
                 parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
@@ -123,7 +115,7 @@ class Config: NSObject, NSCoding {
                 return
             }
                     
-            // Use the data
+            // Utilize data
             if let newConfig = Config(dictionary: parsedResult as! [String:AnyObject]) {
                 appDelegate.config = newConfig
                 appDelegate.config.save()
@@ -132,7 +124,7 @@ class Config: NSObject, NSCoding {
             }
         }
         
-        // Start task
+        // Start the request
         task.resume()
     }
     

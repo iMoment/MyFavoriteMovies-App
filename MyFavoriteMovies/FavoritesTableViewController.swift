@@ -29,40 +29,35 @@ class FavoritesTableViewController: UITableViewController {
         
         super.viewWillAppear(animated)
         
-        // TODO: Get movies from favorite list, then populate the table
-        
-        // 1. Set the parameters
+        // Set parameters
         let methodParameters = [
             Constants.TMDBParameterKeys.ApiKey: Constants.TMDBParameterValues.ApiKey,
             Constants.TMDBParameterKeys.SessionID: appDelegate.sessionID!
         ]
         
-        // 2/3. Build the URL, Configure the request
+        // Build URL / Configure request
         let request = NSMutableURLRequest(URL: appDelegate.tmdbURLFromParameters(methodParameters, withPathExtension: "/account/\(appDelegate.userID!)/favorite/movies"))
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         
-        // 4. Make the request
+        // Make request
         let task = appDelegate.sharedSession.dataTaskWithRequest(request) { (data, response, error) in
             
-            // Check for error
             guard (error == nil) else {
                 print("There was an error with your request: \(error)")
                 return
             }
             
-            // Check for successful 2XX response
             guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
                 print("Your request returned a status code other than 2xx!")
                 return
             }
             
-            // Check if data was returned; not necessary due to guard error check above
             guard let data = data else {
                 print("No data was returned by the request!")
                 return
             }
             
-            // Parse the data
+            // Parsing the data
             let parsedResult: AnyObject!
             do {
                 parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
@@ -83,7 +78,7 @@ class FavoritesTableViewController: UITableViewController {
                 return
             }
             
-            // Use the data
+            // Utilize data
             self.movies = Movie.moviesFromResults(results)
             performUIUpdatesOnMain {
                 self.tableView.reloadData()
@@ -117,44 +112,41 @@ extension FavoritesTableViewController {
         cell.imageView!.image = UIImage(named: "Film Icon")
         cell.imageView!.contentMode = UIViewContentMode.ScaleAspectFit
         
-        // TODO: Get the poster image, then populate the image view
+        // Get the poster image, then populate the image view
         if let posterPath = movie.posterPath {
             
-            // 1. Set the parameters
+            // Set parameters
             // There are none.
             
-            // 2. Build the URL
+            // Build URL
             let baseURL = NSURL(string: appDelegate.config.baseImageURLString)!
             let url = baseURL.URLByAppendingPathComponent("w154").URLByAppendingPathComponent(posterPath)
             
-            // 3. Configure the request
+            // Configure request
             let request = NSURLRequest(URL: url)
             
-            // 4. Make the request
+            // Make request
             let task = appDelegate.sharedSession.dataTaskWithRequest(request) { (data, response, error) in
                 
-                // Check for error
                 guard (error == nil) else {
                     print("There was an error with your request: \(error)")
                     return
                 }
                 
-                // Check for successful 2XX response
                 guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
                     print("Your request returned a status code other than 2xx!")
                     return
                 }
                 
-                // Check if data was returned; not necessary due to guard error check above
                 guard let data = data else {
                     print("No data was returned by the request!")
                     return
                 }
                 
-                // 5. Parse the data
+                // Parse the data
                 // No need, the data is already raw image data.
                 
-                // 6. Use the data
+                // Utilize data
                 if let image = UIImage(data: data) {
                     performUIUpdatesOnMain {
                         cell.imageView!.image = image
@@ -164,7 +156,7 @@ extension FavoritesTableViewController {
                 }
             }
             
-            // 7. Start the request
+            // Start the request
             task.resume()
         }
         
