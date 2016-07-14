@@ -10,7 +10,7 @@ struct Constants {
     
     // TMDB
     struct TMDB {
-        static let ApiScheme = "http"
+        static let ApiScheme = "https"
         static let ApiHost = "api.themoviedb.org"
         static let ApiPath = "/3"
     }

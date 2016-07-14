@@ -57,8 +57,8 @@ class LoginViewController: UIViewController {
                 TODO: Steps for Authentication...
                 https://www.themoviedb.org/documentation/api/sessions
                 
-                Step 1: Create a request token
-                Step 2: Ask the user for permission via the API ("login")
+                Step 1: Create a request token * Finished *
+                Step 2: Ask the user for permission via the API ("login") * Finished *
                 Step 3: Create a session ID
                 
                 Extra Steps...
@@ -283,7 +283,7 @@ class LoginViewController: UIViewController {
             
             // 6. Use the data!
             self.appDelegate.sessionID = sessionID
-            print(sessionID)
+            print(parsedResult)
         }
         
         // 7. Start the request
