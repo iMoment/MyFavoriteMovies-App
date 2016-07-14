@@ -238,7 +238,7 @@ class LoginViewController: UIViewController {
                 print(error)
                 performUIUpdatesOnMain {
                     self.setUIEnabled(true)
-                    self.debugTextLabel.text = "Could not get Session ID."
+                    self.debugTextLabel.text = "Login Failed. (Session ID)"
                 }
             }
             
@@ -309,7 +309,7 @@ class LoginViewController: UIViewController {
                 print(error)
                 performUIUpdatesOnMain {
                     self.setUIEnabled(true)
-                    self.debugTextLabel.text = "Could not get User ID."
+                    self.debugTextLabel.text = "Login Failed. (User ID)"
                 }
             }
             
