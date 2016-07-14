@@ -214,19 +214,29 @@ class MovieDetailViewController: UIViewController {
             }
             
             // Check for TMDB status_code
+            guard let tmdbStatusCode = parsedResult[Constants.TMDBResponseKeys.StatusCode] as? Int else {
+                print("Could not find key '\(Constants.TMDBResponseKeys.StatusCode)' in \(parsedResult)")
+                return
+            }
             
+            // Check for correct TMDB status_code
+            if shouldFavorite && !(tmdbStatusCode == 12 || tmdbStatusCode == 1) {
+                print("Unrecognized '\(Constants.TMDBResponseKeys.StatusCode)' in \(parsedResult)")
+                return
+            } else if !shouldFavorite && tmdbStatusCode != 13 {
+                print("Unrecognized '\(Constants.TMDBResponseKeys.StatusCode)' in \(parsedResult)")
+                return
+            }
             
             // 6. Use the data
-            print(parsedResult)
+            self.isFavorite = shouldFavorite
+            performUIUpdatesOnMain {
+                self.favoriteButton.tintColor = (shouldFavorite) ? nil : UIColor.blackColor()
+            }
+            
         }
+        
         // 7. Start the request
         task.resume()
-        /* If the favorite/unfavorite request completes, then use this code to update the UI.
-        
-        performUIUpdatesOnMain {
-            self.favoriteButton.tintColor = (shouldFavorite) ? nil : UIColor.blackColor()
-        }
-        
-        */
     }
 }
