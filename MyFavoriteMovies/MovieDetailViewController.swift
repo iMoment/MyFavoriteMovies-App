@@ -40,39 +40,35 @@ class MovieDetailViewController: UIViewController {
             posterImageView.image = UIImage(named: "film342.png")
             titleLabel.text = movie.title
             
-            // TODO A: Get favorite movies, then update the favorite buttons
-            // 1A. Set the parameters
+            // Set parameters
             let methodParameters = [
                 Constants.TMDBParameterKeys.ApiKey: Constants.TMDBParameterValues.ApiKey,
                 Constants.TMDBParameterKeys.SessionID: appDelegate.sessionID!
             ]
             
-            // 2/3. Build the URL, Configure the request
+            // Build URL / Configure request
             let request = NSMutableURLRequest(URL: appDelegate.tmdbURLFromParameters(methodParameters, withPathExtension: "/account/\(appDelegate.userID!)/favorite/movies"))
             request.addValue("application/json", forHTTPHeaderField: "Accept")
             
-            // 4A. Make the request
+            // Make request
             let task = appDelegate.sharedSession.dataTaskWithRequest(request) { (data, response, error) in
                 
-                // Check for error
                 guard (error == nil) else {
                     print("There was an error with your request: \(error)")
                     return
                 }
                 
-                // Check for successful 2XX response
                 guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
                     print("Your request returned a status code other than 2xx!")
                     return
                 }
                 
-                // Check if data was returned; not necessary due to guard error check above
                 guard let data = data else {
                     print("No data was returned by the request!")
                     return
                 }
                 
-                // 5A. Parse the data
+                // Parsing the data
                 let parsedResult: AnyObject!
                 do {
                     parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
@@ -93,7 +89,7 @@ class MovieDetailViewController: UIViewController {
                     return
                 }
                 
-                // 6A. Use the data
+                // Utilize data
                 let movies = Movie.moviesFromResults(results)
                 self.isFavorite = false
                 
@@ -108,47 +104,44 @@ class MovieDetailViewController: UIViewController {
                 }
             }
             
-            // 7A. Start the request
+            // Start the request
             task.resume()
             
-            // TODO B: Get the poster image, then populate the image view
+            // Get the poster image, then populate the image view
             if let posterPath = movie.posterPath {
                 
-                // 1B. Set the parameters
+                // Set the parameters
                 // There are none.
                 
-                // 2B. Build the URL
+                // Build URL
                 let baseURL = NSURL(string: appDelegate.config.baseImageURLString)!
                 let url = baseURL.URLByAppendingPathComponent("w342").URLByAppendingPathComponent(posterPath)
                 
-                // 3B. Configure the request
+                // Configure request
                 let request = NSURLRequest(URL: url)
                 
-                // 4B. Make the request
+                // Make request
                 let task = appDelegate.sharedSession.dataTaskWithRequest(request) { (data, response, error) in
                     
-                    // Check for error
                     guard (error == nil) else {
                         print("There was an error with your request: \(error)")
                         return
                     }
                     
-                    // Check for successful 2XX response
                     guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
                         print("Your request returned a status code other than 2xx!")
                         return
                     }
                     
-                    // Check if data was returned; not necessary due to guard error check above
                     guard let data = data else {
                         print("No data was returned by the request!")
                         return
                     }
                     
-                    // 5B. Parse the data
+                    // Parse data
                     // No need, the data is already raw image data.
                     
-                    // 6B. Use the data!
+                    // Utilize data
                     if let image = UIImage(data: data) {
                         performUIUpdatesOnMain {
                             self.posterImageView!.image = image
@@ -158,7 +151,7 @@ class MovieDetailViewController: UIViewController {
                     }
                 }
                 
-                // 7B. Start the request
+                // Start the request
                 task.resume()
             }
         }
@@ -170,41 +163,36 @@ class MovieDetailViewController: UIViewController {
         
          let shouldFavorite = !isFavorite
         
-        // TODO: Add movie as favorite, then update favorite buttons
-        
-        // 1. Set the parameters
+        // Set parameters
         let methodParameters = [Constants.TMDBParameterKeys.ApiKey : Constants.TMDBParameterValues.ApiKey,
                                 Constants.TMDBParameterKeys.SessionID : appDelegate.sessionID!]
         
-        // 2/3. Build the URL, Configure the request
+        // Build URL / Configure request
         let request = NSMutableURLRequest(URL: appDelegate.tmdbURLFromParameters(methodParameters, withPathExtension: "/account/\(appDelegate.userID!)/favorite"))
         request.HTTPMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.HTTPBody = "{\"media_type\": \"movie\",\"media_id\": \(movie!.id),\"favorite\": \(shouldFavorite)}".dataUsingEncoding(NSUTF8StringEncoding)
         
-        // 4. Make the request
+        // Make request
         let task = appDelegate.sharedSession.dataTaskWithRequest(request) { (data, response, error) in
             
-            // Check for error
             guard (error == nil) else {
                 print("There was an error with your request: \(error)")
                 return
             }
             
-            // Check for successful 2XX response
             guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
                 print("Your request returned a status code other than 2xx.")
                 return
             }
             
-            // Check if data was returned; not necessary due to guard error check above
             guard let data = data else {
                 print("No data was returned by the request.")
                 return
             }
             
-            // 5. Parse the data
+            // Parsing the data
             let parsedResult: AnyObject!
             do {
                 parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
@@ -228,7 +216,7 @@ class MovieDetailViewController: UIViewController {
                 return
             }
             
-            // 6. Use the data
+            // Utilize data
             self.isFavorite = shouldFavorite
             performUIUpdatesOnMain {
                 self.favoriteButton.tintColor = (shouldFavorite) ? nil : UIColor.blackColor()
@@ -236,7 +224,7 @@ class MovieDetailViewController: UIViewController {
             
         }
         
-        // 7. Start the request
+        // Start the request
         task.resume()
     }
 }
